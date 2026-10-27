@@ -107,7 +107,41 @@ validation only) beats the strongest validation-selected baseline on composition
 one real dataset, with a 95% CI of the paired difference over seeds excluding zero. A win only on
 synthetic data is not enough. (The E1 clause is dropped: E1 already showed no clear basis effect.)
 
-### 5.6 Order of work
+### 5.6 Step 1 findings (verification, 2026-10-27)
+
+References (checked via web search; arXiv pages themselves are not reachable from this environment):
+- **AICoG**: confirmed. "Aitchison Embeddings for Learning Compositional Graph Representations", Nakis,
+  Kosma, Promponas, Chatzianastasis, Nikolentzos, arXiv 2605.00716, ICML 2026 (PMLR 306). Node embeddings
+  as compositions over latent archetypes in ilr coordinates. **Not confirmed:** that it names
+  compositional-state message passing as future work. The future work found is disconnected graphs and
+  subcompositions. Do not cite that claim until checked in the full text.
+- **Manifold GCN**: confirmed. Hanik, Steidl & von Tycowicz, arXiv 2401.14381. IJCV vol. 134 (2026)
+  according to the group's page; DBLP lists only the preprint. Cite as IJCV 2026 once the DOI is found.
+- **Blondel, Drumetz & Chonavel**: confirmed. "Aitchison Geometry on the Simplex for Uncertainty
+  Quantification in Bayesian Hyperspectral Image Unmixing", arXiv 2603.24108 (March 2026), with an
+  ilr-pushforward Gaussian-process prior.
+- **Tomlinson & Benson**: confirmed. "Graph-Based Methods for Discrete Choice", arXiv 2205.11365,
+  Network Science 12(1):21–40, 2024. Code: github.com/tomlinsonk/graph-based-discrete-choice.
+
+Network access from the container: GitHub (git clone, raw files) works. arXiv, OSF, Zenodo, Harvard
+Dataverse and census.gov are blocked.
+
+Data:
+- Tomlinson & Benson's processed data are on OSF (blocked). Their original sources are on GitHub and
+  reachable:
+  - **github.com/000Justin000/gnn-residual-correlation, datasets/election** (Jia & Benson, KDD 2020):
+    3,112 counties, county adjacency, **vote counts** Dem / GOP / other for 2008, 2012, 2016, plus
+    education, income, population and unemployment. Enables persistence (2012 → 2016), multinomial NLL
+    and demographic features. No Alaska. No zero "other" counts (minimum county total 64).
+  - **github.com/mkearney/presidential_election_county_results_2016**: per-candidate 2016 county
+    **counts**, 25 candidates. Only 2,825 counties, so it is incomplete. Structural zeros: Stein is on the
+    ballot in 2,314 counties, McMullin in 655, Castle in 1,166.
+- Plan for E3b: the 3-party file as the main dataset (complete, has counts and a previous election); a
+  multiparty variant (Trump / Clinton / Johnson / Stein / McMullin / other) on the 2,825 counties with
+  coverage, for the zeros question. Document the coverage gap.
+- R: not checked yet (expected unavailable).
+
+### 5.7 Order of work
 1. Verify the references, the dataset contents (parties, counts, downloadability) and network access.
 2. Unit tests: linear equivalence (5.1) and permutation equivariance (5.3).
 3. E3b first, with Aitchison and Fisher–Rao and the mandatory baselines → go/no-go on real data.

@@ -139,7 +139,7 @@ Data:
 - Plan for E3b: the 3-party file as the main dataset (complete, has counts and a previous election); a
   multiparty variant (Trump / Clinton / Johnson / Stein / McMullin / other) on the 2,825 counties with
   coverage, for the zeros question. Document the coverage gap.
-- R: not checked yet (expected unavailable).
+- R: not installed, so α-SAR (CompositionalSR) is skipped (documented).
 
 ### 5.7 Order of work
 1. Verify the references, the dataset contents (parties, counts, downloadability) and network access.

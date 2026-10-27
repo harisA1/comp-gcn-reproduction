@@ -65,9 +65,13 @@ def comp_dropout(h, p, training):
 
 
 class CompLayer(nn.Module):
-    def __init__(self, p_in, p_out, D, nonlin=None, within="off", basis=None):
+    def __init__(self, p_in, p_out, D, nonlin=None, within="off", basis=None, skip=False):
         super().__init__()
         self.within = within
+        # skip: the node's own state through a separate full zero-sum map (no aggregation), so the
+        # node's own composition is not diluted by averaging with its neighbours
+        self.Ws = nn.Parameter((torch.rand(p_out, p_in, D, D) * 2 - 1) * np.sqrt(6.0 / ((p_in + p_out) * D))) \
+            if skip else None
         if within == "full":
             # every input -> output channel pair gets its own D x D map, output projected back to the
             # zero-sum hyperplane: the general zero-sum-preserving linear map (as expressive as a dense
@@ -96,7 +100,8 @@ class CompLayer(nn.Module):
             raise ValueError(nonlin)
         self._ah = None
 
-    def forward(self, h, A, cache=False):
+    def forward(self, h, A, cache=False, extra=None):
+        """extra: (n, p_out, D) added before bias and nonlinearity (e.g. projected scalar covariates)."""
         n = h.shape[0]
         if cache:                       # first layer: the input is fixed, compute A @ clr once
             if self._ah is None:
@@ -112,6 +117,10 @@ class CompLayer(nn.Module):
             z = center(z @ self.M.T)
         elif self.within == "per":
             z = center(torch.einsum("kde,nke->nkd", self.M, z))
+        if self.Ws is not None:
+            z = z + center(torch.einsum("kjde,nje->nkd", self.Ws, h))
+        if extra is not None:
+            z = z + center(extra)
         z = z + center(self.bias)
         return self.act(z)
 
@@ -143,20 +152,32 @@ class CompMP(nn.Module):
       layer (A H W). "stack" stacks two linear maps and overfits small training sets much faster.
     """
     def __init__(self, p, D, hidden, n_out, dropout, nonlin="part", within="off", basis=None, out="scalar",
-                 layers=2, head="stack"):
+                 layers=2, head="stack", n_scalar=0, skip=False):
         super().__init__()
-        self.l1 = CompLayer(p, hidden, D, nonlin, within, basis)
+        self.l1 = CompLayer(p, hidden, D, nonlin, within, basis, skip)
+        # scalar covariates enter the first layer Aitchison-linearly: A s -> powering of learned directions
+        self.scalar_in = nn.Linear(n_scalar, hidden * D, bias=False) if n_scalar else None
+        self.scalar_self = nn.Linear(n_scalar, hidden * D, bias=False) if (n_scalar and skip) else None
+        self._as = None
         self.mid = nn.ModuleList([CompLayer(hidden, hidden, D, nonlin, within, basis) for _ in range(layers - 2)])
         q = hidden if out == "scalar" else n_out
         self.head = head if out == "scalar" else "stack"
-        self.l2 = CompLayer(hidden, q, D, None, within) if self.head == "stack" else None
+        self.l2 = CompLayer(hidden, q, D, None, within, skip=skip) if self.head == "stack" else None
         self.readout = nn.Linear(q * D, n_out) if out == "scalar" else None
         if self.readout is not None:
             nn.init.xavier_uniform_(self.readout.weight); nn.init.zeros_(self.readout.bias)
         self.dp = dropout
 
-    def forward(self, h, A):
-        h = self.l1(h, A, cache=True)
+    def forward(self, h, A, s=None):
+        extra = None
+        if self.scalar_in is not None:
+            if self._as is None:
+                self._as = A @ s
+            extra = self.scalar_in(self._as)
+            if self.scalar_self is not None:
+                extra = extra + self.scalar_self(s)
+            extra = extra.reshape(h.shape[0], -1, h.shape[-1])
+        h = self.l1(h, A, cache=True, extra=extra)
         for layer in self.mid:
             h = h + layer(comp_dropout(h, self.dp, self.training), A)
         h = comp_dropout(h, self.dp, self.training)

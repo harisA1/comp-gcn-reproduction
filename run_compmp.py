@@ -151,8 +151,9 @@ def main():
     ap.add_argument("exp", choices=["e1", "e2"])
     ap.add_argument("--workers", type=int, default=os.cpu_count())
     ap.add_argument("--limit", type=int, default=0, help="run only the first N pending jobs (timing)")
+    ap.add_argument("--out", help="results CSV (default results/compmp_<exp>.csv)")
     a = ap.parse_args()
-    path = f"results/compmp_{a.exp}.csv"
+    path = a.out or f"results/compmp_{a.exp}.csv"
     done = set()
     if os.path.exists(path):
         with open(path) as f:

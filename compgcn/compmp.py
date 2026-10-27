@@ -67,14 +67,21 @@ def comp_dropout(h, p, training):
 class CompLayer(nn.Module):
     def __init__(self, p_in, p_out, D, nonlin=None, within="off", basis=None):
         super().__init__()
-        self.alpha = nn.Parameter(torch.empty(p_out, p_in))
-        nn.init.xavier_uniform_(self.alpha)
         self.within = within
+        if within == "full":
+            # every input -> output channel pair gets its own D x D map, output projected back to the
+            # zero-sum hyperplane: the general zero-sum-preserving linear map (as expressive as a dense
+            # linear layer on ilr coordinates)
+            bound = np.sqrt(6.0 / ((p_in + p_out) * D))
+            self.W = nn.Parameter((torch.rand(p_out, p_in, D, D) * 2 - 1) * bound)
+        else:
+            self.alpha = nn.Parameter(torch.empty(p_out, p_in))
+            nn.init.xavier_uniform_(self.alpha)
         if within == "shared":
             self.M = nn.Parameter(torch.eye(D))
         elif within == "per":
             self.M = nn.Parameter(torch.eye(D).repeat(p_out, 1, 1))
-        elif within != "off":
+        elif within not in ("off", "full"):
             raise ValueError(within)
         self.bias = nn.Parameter(torch.zeros(p_out, D))
         self.nonlin = nonlin
@@ -97,7 +104,10 @@ class CompLayer(nn.Module):
             ah = self._ah
         else:
             ah = (A @ h.reshape(n, -1)).reshape(h.shape)
-        z = torch.einsum("kj,njd->nkd", self.alpha, ah)
+        if self.within == "full":
+            z = center(torch.einsum("kjde,nje->nkd", self.W, ah))
+        else:
+            z = torch.einsum("kj,njd->nkd", self.alpha, ah)
         if self.within == "shared":
             z = center(z @ self.M.T)
         elif self.within == "per":
@@ -125,12 +135,21 @@ class CompMP(nn.Module):
       composition with learned compositions, i.e. a Linear layer on the flattened clr state.
     out="comp":   q = number of target compositions; the output is the clr of the prediction
       (prediction = softmax of it).
+    layers > 2 inserts hidden -> hidden CompLayers with the nonlinearity, each with a residual
+    connection in clr (h + layer(h), i.e. perturbation), against over-smoothing towards the
+    global Aitchison barycenter.
+    head (scalar targets only): "stack" = CompLayer (hidden -> hidden) then Linear readout (used in E1);
+      "prop" = Aitchison inner products with learned compositions, then propagation, like GCN's second
+      layer (A H W). "stack" stacks two linear maps and overfits small training sets much faster.
     """
-    def __init__(self, p, D, hidden, n_out, dropout, nonlin="part", within="off", basis=None, out="scalar"):
+    def __init__(self, p, D, hidden, n_out, dropout, nonlin="part", within="off", basis=None, out="scalar",
+                 layers=2, head="stack"):
         super().__init__()
         self.l1 = CompLayer(p, hidden, D, nonlin, within, basis)
+        self.mid = nn.ModuleList([CompLayer(hidden, hidden, D, nonlin, within, basis) for _ in range(layers - 2)])
         q = hidden if out == "scalar" else n_out
-        self.l2 = CompLayer(hidden, q, D, None, within)
+        self.head = head if out == "scalar" else "stack"
+        self.l2 = CompLayer(hidden, q, D, None, within) if self.head == "stack" else None
         self.readout = nn.Linear(q * D, n_out) if out == "scalar" else None
         if self.readout is not None:
             nn.init.xavier_uniform_(self.readout.weight); nn.init.zeros_(self.readout.bias)
@@ -138,7 +157,12 @@ class CompMP(nn.Module):
 
     def forward(self, h, A):
         h = self.l1(h, A, cache=True)
-        h = self.l2(comp_dropout(h, self.dp, self.training), A)
+        for layer in self.mid:
+            h = h + layer(comp_dropout(h, self.dp, self.training), A)
+        h = comp_dropout(h, self.dp, self.training)
+        if self.head == "prop":
+            return A @ self.readout(h.reshape(h.shape[0], -1))
+        h = self.l2(h, A)
         if self.readout is None:
             return h                                  # (n, q, D) clr of the predicted compositions
         return self.readout(h.reshape(h.shape[0], -1))

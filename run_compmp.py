@@ -19,9 +19,15 @@ from compgcn.compmp import CompMP, adjacency, clr_blocks
 from compgcn.train import DEFAULT_HP
 
 D = 3
-# name -> (nonlinearity, within-composition map)
-COMPMP = {"CompMP-a": ("naive", "off"), "CompMP-a-M": ("naive", "per"),
-          "CompMP-b": ("norm", "off"), "CompMP-c": ("part", "off"), "CompMP-c-M": ("part", "per")}
+# name -> (nonlinearity, linear map, adjacency normalization, scalar head)
+COMPMP = {"CompMP-a": ("naive", "off", "row", "stack"), "CompMP-a-M": ("naive", "per", "row", "stack"),
+          "CompMP-b": ("norm", "off", "row", "stack"), "CompMP-c": ("part", "off", "row", "stack"),
+          "CompMP-c-M": ("part", "per", "row", "stack"),
+          # full zero-sum linear maps: linear part == a GCN on ilr (tests_compmp.py), so with "sym" the only
+          # difference to GCN-ilr is the basis-free nonlinearity
+          # "prop" head: inner products then propagation, like GCN's second layer (the "stack" head overfits);
+          # hidden / (D-1) compositions, i.e. the same hidden width in ilr coordinates as GCN-ilr
+          "CompMP-full": ("part", "full", "sym", "prop"), "CompMP-full-row": ("part", "full", "row", "prop")}
 BASELINES = {"GCN-ilr": (GCN, "ilr"), "COMP-GCN": (COMPGCN, "ilr"), "GCN-scalar": (GCN, "raw"),
              "MLP-ilr": (MLP, "ilr")}
 GRID = [dict(lr=lr, hidden=h, dropout=dp) for lr, h, dp in itertools.product((0.005, 0.01), (8, 16), (0.2, 0.5))]
@@ -91,11 +97,12 @@ def fit(j):
     torch.manual_seed(j["seed"])
     y = torch.tensor(d.y, dtype=torch.long)
     if m in COMPMP:
-        nl, within = COMPMP[m]
+        nl, within, adj, head = COMPMP[m]
         x = torch.tensor(clr_blocks(d.X, d.D), dtype=torch.float32)
-        model = CompMP(len(d.D), D, hp["hidden"], d.n_classes, hp["dropout"], nl, within,
-                       None if bases is None else bases[0])
-        return train(model, x, A_row, y, split, hp)
+        width = hp["hidden"] // (D - 1) if head == "prop" else hp["hidden"]
+        model = CompMP(len(d.D), D, width, d.n_classes, hp["dropout"], nl, within,
+                       None if bases is None else bases[0], head=head)
+        return train(model, x, A_row if adj == "row" else A_sym, y, split, hp)
     if m in BASELINES:
         cls, kind = BASELINES[m]
         x = torch.tensor(block_ilr(d.X, d.D, bases) if kind == "ilr" else d.X, dtype=torch.float32)
@@ -128,7 +135,8 @@ def jobs(exp):
                 J.append(dict(exp=exp, setting=s, seed=seed, basis=b, model=m, **hp))
     elif exp == "e2":
         for s, seed in itertools.product(SYN, range(10)):
-            for m in ["CompMP-a", "CompMP-b", "CompMP-c", "CompMP-c-M"] + list(BASELINES):
+            # the old CompMP-a/b/c-M variants were dropped from E2 after E1 (rows already run are kept)
+            for m in ["CompMP-c", "CompMP-full", "CompMP-full-row"] + list(BASELINES):
                 J += [dict(exp=exp, setting=s, seed=seed, basis=0, model=m, **hp) for hp in GRID]
             J += [dict(exp=exp, setting=s, seed=seed, basis=0, model="linear-ilr", C=c) for c in LOGREG_C]
             J.append(dict(exp=exp, setting=s, seed=seed, basis=0, model="constant"))

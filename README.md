@@ -31,7 +31,7 @@ Full tables are in [`results/summary.md`](results/summary.md).
 **In short:** the method is correct and works on synthetic data built to suit it, but the evidence that
 the special layer matters, or that it helps on real data, does not hold up.
 
-## The follow-up: CompMP (in progress)
+## The follow-up: CompMP (stopped; see REPORT.md)
 
 COMP-GCN discards the compositional structure after one layer, and all its targets are single numbers.
 Our hypothesis is that compositional geometry should matter more when (a) it is kept through the whole
@@ -48,9 +48,11 @@ Experiments, in order:
 
 | | Question | Status |
 |---|---|---|
-| **E1** | Does the naive ReLU really change results when only the basis changes? | running |
-| **E2** | On the paper's scalar targets, does CompMP beat GCN-ilr? (Expected: a tie.) | queued |
-| **E3** | On compositional targets (synthetic, and US county vote shares), does CompMP beat strong baselines? | after a checkpoint |
+| **E1** | Does the naive ReLU really change results when only the basis changes? | done: yes, but small |
+| **E2** | On the paper's scalar targets, does CompMP beat GCN-ilr? (Expected: a tie.) | partial: tie (2 of 18 settings) |
+| **E3** | On compositional targets (US county vote shares), does CompMP beat strong baselines? | partial: beats GCN-ilr, loses to a Laplacian-smoothed logit |
+
+**Outcome: no-go for CompMP as a methods paper.** See [REPORT.md](REPORT.md) and [SUMMARY.md](SUMMARY.md).
 
 All models get the same small hyperparameter grid, selected on validation data only, with 10 seeds.
 
@@ -73,6 +75,8 @@ python tests_compmp.py
 python run_compmp.py e1
 python run_compmp.py e2
 python summarize_compmp.py                      # -> results/compmp_summary.md
+python run_e3.py                                # downloads the county data into data/ on first use
+python summarize_e3.py                          # -> results/compmp_e3_summary.md
 ```
 
 The synthetic experiments need no downloaded data. The real datasets are not included here; ask the

@@ -60,6 +60,15 @@ def main():
                 t.to_markdown(index=False, floatfmt=".4f"), "\n"]
     if os.path.exists("results/compmp_e2.csv"):
         df = pd.read_csv("results/compmp_e2.csv")
+        df = df.drop_duplicates(subset=["setting", "seed", "basis", "model", "lr", "hidden", "dropout", "C"])
+        # E2 was paused: keep the current models and only the settings where all of them have 10 seeds
+        current = ["CompMP-c", "CompMP-full", "CompMP-full-row", "GCN-ilr", "COMP-GCN", "GCN-scalar",
+                   "MLP-ilr", "linear-ilr", "constant"]
+        df = df[df.model.isin(current)]
+        seeds = df.groupby(["setting", "model"]).seed.nunique().unstack()
+        complete = seeds.index[(seeds.reindex(columns=current) >= 10).all(axis=1)]
+        df = df[df.setting.isin(complete)]
+        out += [f"E2 was paused after {len(complete)} of 18 settings were complete; only those are shown.\n"]
         sel, best = select(df)
         order = ["CompMP-a", "CompMP-b", "CompMP-c", "CompMP-c-M", "GCN-ilr", "COMP-GCN", "GCN-scalar",
                  "MLP-ilr", "linear-ilr", "constant"]

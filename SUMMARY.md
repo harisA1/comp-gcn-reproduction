@@ -1,8 +1,10 @@
 # The story so far, in plain language
 
-*Status as of 27 October 2026. Findings 5 and 6 are preliminary (one data split); the full runs are in
-progress. Technical details: [README.md](README.md), [PLAN.md](PLAN.md),
-[results/summary.md](results/summary.md), [results/compmp_summary.md](results/compmp_summary.md).*
+*Final status, 27 October 2026. The project was wrapped up by decision before every run finished; findings
+5 and 7 are preliminary (4–5 seeds, random split only). Technical report: [REPORT.md](REPORT.md). Details:
+[README.md](README.md), [PLAN.md](PLAN.md), [results/summary.md](results/summary.md),
+[results/compmp_summary.md](results/compmp_summary.md),
+[results/compmp_e3_summary.md](results/compmp_e3_summary.md).*
 
 ## The starting question
 
@@ -44,11 +46,12 @@ matches the standard network. And on the election task, *every* graph network fa
 direct link from each county to its own past result: averaging with neighbours drowned out the strongest
 signal.
 
-**5. On real compositional data, a simpler method currently wins (preliminary).** In early results on the
-county vote shares (one data split so far), the best model is a **linear model with smoothing across
-neighbouring counties** (Tomlinson & Benson's method). Our network comes second, ahead of the other
-baselines. It's best on the compositional error measure among the neural networks, but about 30% worse than
-the linear model on plain percentage-point error.
+**5. On real compositional data, a simpler method wins (preliminary).** On the county vote shares, the
+best model is a **linear model with smoothing across neighbouring counties** (Tomlinson & Benson's method):
+1.3 percentage points average error. Our network comes second at 1.8 points, ahead of every other model.
+The gap to the linear model is about ten times the seed-to-seed noise, so it is not luck. Our network does
+beat the ordinary graph network on the same transformed data (GCN-ilr), by about 10%, consistently across
+seeds: the one place where keeping compositions compositional measurably helped.
 
 **6. How you measure the error matters.** "Predict 2016 = 2012" is very good in percentage points but
 terrible in ratio terms, because third-party votes roughly tripled. The ranking of methods changes with the
@@ -62,11 +65,20 @@ error measure. Any compositional-data study has to report several measures.
   parts, the outputs and the loss can differ.
 - **For the one real task tested so far, simple smoothing beats deep message passing.** That's preliminary.
 
-## Still running
+**7. One correction (preliminary).** With proper tuning, on the easiest synthetic setting, the paper's
+model is slightly *better* than the plain network on transformed data. Our "the special layer adds nothing"
+finding holds for the harder settings (many compositions, many classes); the tuned rerun didn't reach those.
 
-- The full, fairly tuned comparison on the paper's synthetic tasks (E2).
-- The full election experiment (E3): 10 random seeds, plus a harder test where whole states are held out,
-  which could change the ranking.
+## Not done
+
+- The election test with whole states held out, and the remaining seeds.
+- The tuned synthetic comparison on the harder settings.
+- Data with structural zeros (multiparty elections), where other geometries might matter more.
+
+## Verdict
+
+Our model (CompMP) is not a methods paper: it loses to a simpler smoothing model on the one real task.
+The lessons carry over to the next project (spectral unmixing benchmark, separate repository).
 
 ## The paper this could become
 

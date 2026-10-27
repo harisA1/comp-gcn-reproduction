@@ -27,3 +27,97 @@
 | p=100,C=5      | CompMP-b   |       3 | 0.4469 |     0.0000 |        0.0000 |     0.0544 |
 | p=100,C=5      | CompMP-c   |       3 | 0.4777 |     0.0000 |        0.0000 |     0.0549 |
 
+
+E2 was paused after 2 of 18 settings were complete; only those are shown.
+
+## E2: scalar targets, n = 2000 (test accuracy, mean ± std over seeds)
+
+Validation-selected config per model and setting (8-config grid: lr {0.005, 0.01} × hidden {8, 16} × dropout {0.2, 0.5}; linear-ilr: 4 values of C). Seeds per cell: 10–10.
+
+### p=10
+
+| model      | p=10,snr=1    | p=10,snr=1.78   |
+|:-----------|:--------------|:----------------|
+| CompMP-c   | 0.826 ± 0.034 | 0.895 ± 0.025   |
+| GCN-ilr    | 0.820 ± 0.036 | 0.892 ± 0.024   |
+| COMP-GCN   | 0.835 ± 0.035 | 0.895 ± 0.021   |
+| GCN-scalar | 0.805 ± 0.112 | 0.905 ± 0.023   |
+| MLP-ilr    | 0.770 ± 0.082 | 0.770 ± 0.082   |
+| linear-ilr | 0.809 ± 0.070 | 0.809 ± 0.070   |
+| constant   | 0.500 ± 0.002 | 0.500 ± 0.002   |
+
+
+### p=100
+
+| model      |
+|:-----------|
+| CompMP-c   |
+| GCN-ilr    |
+| COMP-GCN   |
+| GCN-scalar |
+| MLP-ilr    |
+| linear-ilr |
+| constant   |
+
+
+### Paired difference to GCN-ilr (same seeds and splits), mean [95% CI]
+
+#### p=10
+
+| model      | p=10,snr=1              | p=10,snr=1.78           |
+|:-----------|:------------------------|:------------------------|
+| CompMP-c   | +0.006 [-0.006, +0.017] | +0.003 [-0.003, +0.008] |
+| COMP-GCN   | +0.015 [+0.004, +0.025] | +0.003 [-0.004, +0.010] |
+| GCN-scalar | -0.015 [-0.081, +0.050] | +0.012 [+0.007, +0.018] |
+| MLP-ilr    | -0.050 [-0.089, -0.012] | -0.123 [-0.167, -0.078] |
+| linear-ilr | -0.011 [-0.040, +0.017] | -0.084 [-0.120, -0.047] |
+| constant   | -0.320 [-0.347, -0.293] | -0.392 [-0.410, -0.374] |
+
+
+#### p=100
+
+| model      |
+|:-----------|
+| CompMP-c   |
+| COMP-GCN   |
+| GCN-scalar |
+| MLP-ilr    |
+| linear-ilr |
+| constant   |
+
+
+Settings where the CI excludes 0 (win / loss vs GCN-ilr):
+
+| model      |   wins |   losses |   ties |
+|:-----------|-------:|---------:|-------:|
+| CompMP-c   |      0 |        0 |      2 |
+| COMP-GCN   |      1 |        0 |      1 |
+| GCN-scalar |      1 |        0 |      1 |
+| MLP-ilr    |      0 |        2 |      0 |
+| linear-ilr |      0 |        1 |      1 |
+| constant   |      0 |        2 |      0 |
+
+
+### Selected configs
+
+| setting       | model           | lr    | hidden   | dropout   | C   |
+|:--------------|:----------------|:------|:---------|:----------|:----|
+| p=10,snr=1    | COMP-GCN        | 0.005 | 16.0     | 0.5       | -   |
+| p=10,snr=1    | CompMP-c        | 0.01  | 16.0     | 0.5       | -   |
+| p=10,snr=1    | CompMP-full     | 0.01  | 16.0     | 0.5       | -   |
+| p=10,snr=1    | CompMP-full-row | 0.01  | 16.0     | 0.5       | -   |
+| p=10,snr=1    | GCN-ilr         | 0.01  | 16.0     | 0.2       | -   |
+| p=10,snr=1    | GCN-scalar      | 0.01  | 16.0     | 0.2       | -   |
+| p=10,snr=1    | MLP-ilr         | 0.01  | 16.0     | 0.5       | -   |
+| p=10,snr=1    | constant        | -     | -        | -         | -   |
+| p=10,snr=1    | linear-ilr      | -     | -        | -         | 0.1 |
+| p=10,snr=1.78 | COMP-GCN        | 0.005 | 16.0     | 0.5       | -   |
+| p=10,snr=1.78 | CompMP-c        | 0.01  | 16.0     | 0.5       | -   |
+| p=10,snr=1.78 | CompMP-full     | 0.01  | 16.0     | 0.2       | -   |
+| p=10,snr=1.78 | CompMP-full-row | 0.01  | 16.0     | 0.2       | -   |
+| p=10,snr=1.78 | GCN-ilr         | 0.01  | 16.0     | 0.2       | -   |
+| p=10,snr=1.78 | GCN-scalar      | 0.005 | 16.0     | 0.2       | -   |
+| p=10,snr=1.78 | MLP-ilr         | 0.01  | 16.0     | 0.5       | -   |
+| p=10,snr=1.78 | constant        | -     | -        | -         | -   |
+| p=10,snr=1.78 | linear-ilr      | -     | -        | -         | 0.1 |
+

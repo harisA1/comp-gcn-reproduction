@@ -141,7 +141,23 @@ Data:
   coverage, for the zeros question. Document the coverage gap.
 - R: not installed, so α-SAR (CompositionalSR) is skipped (documented).
 
-### 5.7 Order of work
+### 5.7 CompMP-full (after E1, 2026-10-27)
+
+E1 showed the original CompMP trailing GCN-ilr by 6–12 points at p = 100. Diagnosis, stepping from
+GCN-ilr to CompMP one change at a time: the cause was the scalar head (an extra compositional linear
+layer before the readout), which overfits the 60–150 training nodes within about 50 epochs. Neither the
+nonlinearity nor the clr parametrization was responsible. CompMP-full uses:
+- full zero-sum linear maps (one D×D block per channel pair; linear part == GCN on ilr, unit-tested);
+- a propagation head (inner products with learned compositions, then A·, like GCN's second layer);
+- hidden / (D−1) compositions, i.e. the same hidden width in ilr coordinates as GCN-ilr;
+- the per-part nonlinearity (c); residual hidden layers available (layers > 2), unused in E2.
+
+A 3-seed check put it level with GCN-ilr (0.82 vs 0.817 at p=100 binary, 0.62 vs 0.60 at p=100 C=5,
+0.72 vs 0.74 at p=10 C=5). E2 was restarted with CompMP-c (old, reference), CompMP-full (sym adjacency)
+and CompMP-full-row against the tuned baselines; the old CompMP-a/b/c-M rows already run are kept
+but incomplete.
+
+### 5.8 Order of work
 1. Verify the references, the dataset contents (parties, counts, downloadability) and network access.
 2. Unit tests: linear equivalence (5.1) and permutation equivariance (5.3).
 3. E3b first, with Aitchison and Fisher–Rao and the mandatory baselines → go/no-go on real data.

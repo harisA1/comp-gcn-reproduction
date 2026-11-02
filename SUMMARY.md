@@ -33,7 +33,12 @@ follows from a simple mathematical fact: after that transform, the layer is just
 **2. Its real-world results are empty.** On both of its real datasets (stock co-movement and student
 failure), no model, the paper's included, does better than a trivial guess: "predict the average" or
 "predict the most common outcome". The paper's apparent wins come from comparison models that were trained
-worse than that trivial guess.
+worse than that trivial guess. The authors have since confirmed their setup by email: hyperparameters
+were selected on validation data, the student training and validation sets were class-balanced (as we
+assumed), and the graphs were treated as undirected. That rules out test-set tuning as an explanation, so a
+tuned baseline losing to a constant points to a training problem. Our stock runs used a directed graph and
+should be rerun undirected; the conclusion shouldn't change, because the paper's own stock error equals the
+spread of the target values whatever the graph.
 
 **3. A theoretical worry turned out to be minor.** Feeding proportions into a network requires choosing a
 set of reference axes, and some network operations quietly depend on that arbitrary choice. We showed the
@@ -57,6 +62,10 @@ seeds: the one place where keeping compositions compositional measurably helped.
 terrible in ratio terms, because third-party votes roughly tripled. The ranking of methods changes with the
 error measure. Any compositional-data study has to report several measures.
 
+**7. One correction (preliminary).** With proper tuning, on the easiest synthetic setting, the paper's
+model is slightly *better* than the plain network on transformed data. Our "the special layer adds nothing"
+finding holds for the harder settings (many compositions, many classes); the tuned rerun didn't reach those.
+
 ## What it means so far
 
 - **The paper's claimed contribution doesn't hold up.** This is solid.
@@ -65,12 +74,9 @@ error measure. Any compositional-data study has to report several measures.
   parts, the outputs and the loss can differ.
 - **For the one real task tested so far, simple smoothing beats deep message passing.** That's preliminary.
 
-**7. One correction (preliminary).** With proper tuning, on the easiest synthetic setting, the paper's
-model is slightly *better* than the plain network on transformed data. Our "the special layer adds nothing"
-finding holds for the harder settings (many compositions, many classes); the tuned rerun didn't reach those.
-
 ## Not done
 
+- The stock experiment rerun on the undirected graph, as the authors used.
 - The election test with whole states held out, and the remaining seeds.
 - The tuned synthetic comparison on the harder settings.
 - Data with structural zeros (multiparty elections), where other geometries might matter more.

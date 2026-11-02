@@ -51,6 +51,8 @@ beyond seed noise. It loses to the Laplacian logit by about 10 seed-standard-dev
 basis effect.
 
 ## Not done (would be needed before publishing any of this)
+- Reproduction: the stock experiment on the symmetrized graph (the authors confirmed both real graphs
+  were undirected; our runs used the directed one).
 - E3b state-blocked split, remaining seeds; multiparty data with structural zeros; E3a synthetic.
 - E2 on the multiclass and p = 100 settings (tuned confirmation of the critical result).
 - Second-tier baselines (SAR/SLX, graph GP), GNNs with neighbours' training labels as input.

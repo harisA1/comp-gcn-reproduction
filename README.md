@@ -118,13 +118,24 @@ validation loss (patience 50, best weights restored), gradient values clipped to
 labelled nodes per class for train/validation, the rest test. Real data: 80 train / 80 validation, the
 rest test.
 
+**Clarified by the authors** (Prof. Zhao's group, by email, October–November 2026; the original code
+and the selected configurations were not preserved):
+- Hyperparameters were grid-searched over the grids in Sec. 4.3 and **selected on validation
+  performance**.
+- Student training and validation sets each contain **the same number of fail and not-fail** students.
+  This is what we assumed (40 + 40 for train, the same for validation).
+- Both real networks were treated as **undirected (symmetrized in DGL)** before graph convolution.
+  Our stock runs in `results/` used the directed graph (`--stock-adj dgl`, then the default; `run.py` now
+  defaults to `sym`), so the
+  stock experiment should be rerun with `--stock-adj sym` before publication. We don't expect the
+  conclusion to change: the paper's own COMP-GCN MSE equals the label variance, independent of the graph.
+
 **Where we deviate or had to assume:**
 - No grid search. One fixed setting for all models, the one in the Fig. 6 caption (lr 0.005, L2 5e-4,
-  hidden 8, dropout 0.2). The paper grid-searches but does not report the chosen values, or whether
-  selection used validation or test data.
+  hidden 8, dropout 0.2). The authors selected from the Sec. 4.3 grids on validation, but the chosen
+  values are not available.
 - Fewer repetitions in `results/`: synthetic 5, multiclass 3, real data 10 (paper: 20 / 10 / 10).
-- Student split assumed class-balanced (40 fail + 40 pass for train, the same for validation).
-- The stock graph is directed and normalized as DGL does; `--stock-adj sym` symmetrizes it instead.
+- Stock graph: directed in the runs in `results/` (see above; rerun pending).
 - `make_classification` uses sklearn defaults (n_informative = 2), except n_informative = 3 for C = 5–7,
   where the default cannot produce enough classes. Noise N(0, 0.8) is added before the inverse ilr, as in
   Sec. 4.1.

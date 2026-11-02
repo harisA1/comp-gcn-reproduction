@@ -126,8 +126,7 @@ and the selected configurations were not preserved):
   This is what we assumed (40 + 40 for train, the same for validation).
 - Both real networks were treated as **undirected (symmetrized in DGL)** before graph convolution.
   Our stock runs in `results/` used the directed graph (`--stock-adj dgl`, then the default; `run.py` now
-  defaults to `sym`), so the
-  stock experiment should be rerun with `--stock-adj sym` before publication. We don't expect the
+  defaults to `sym`), so the stock experiment should be rerun before publication. We don't expect the
   conclusion to change: the paper's own COMP-GCN MSE equals the label variance, independent of the graph.
 
 **Where we deviate or had to assume:**

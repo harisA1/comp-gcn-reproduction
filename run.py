@@ -84,8 +84,8 @@ def main():
     ap.add_argument("--reps", type=int, default=5)
     ap.add_argument("--workers", type=int, default=os.cpu_count())
     ap.add_argument("--models", nargs="*", default=MODELS)
-    ap.add_argument("--stock-adj", default="dgl", choices=["dgl", "sym"],
-                    help="directed (DGL GraphConv-style) or symmetrized stock graph")
+    ap.add_argument("--stock-adj", default="sym", choices=["dgl", "sym"],
+                    help="symmetrized (as the authors confirmed) or directed (DGL GraphConv-style) stock graph; results/stock.csv used dgl")
     a = ap.parse_args()
     os.makedirs("results", exist_ok=True)
     exps = ["synthetic", "multiclass", "stock", "student"] if a.exp == "all" else [a.exp]

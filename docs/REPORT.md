@@ -1,7 +1,8 @@
 # CompMP: final report (27 October 2026)
 
-Follow-up to the COMP-GCN reproduction (README.md). Plan: PLAN.md. Plain-language version: SUMMARY.md.
-Tables: results/compmp_summary.md (E1, E2), results/compmp_e3_summary.md (E3b). **The project was stopped
+Follow-up to the COMP-GCN reproduction ([README](../README.md)). Plan: [PLAN.md](PLAN.md). Plain-language
+version: [SUMMARY.md](SUMMARY.md). Tables: [E1, E2](../results/compmp_summary.md),
+[E3b](../results/compmp_e3_summary.md). **The project was stopped
 by decision before the runs completed**; what is preliminary is marked.
 
 ## Question 1: is naive ReLU on ilr coordinates basis-dependent, and do basis-free nonlinearities fix it?

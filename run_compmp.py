@@ -23,7 +23,7 @@ D = 3
 COMPMP = {"CompMP-a": ("naive", "off", "row", "stack"), "CompMP-a-M": ("naive", "per", "row", "stack"),
           "CompMP-b": ("norm", "off", "row", "stack"), "CompMP-c": ("part", "off", "row", "stack"),
           "CompMP-c-M": ("part", "per", "row", "stack"),
-          # full zero-sum linear maps: linear part == a GCN on ilr (tests_compmp.py), so with "sym" the only
+          # full zero-sum linear maps: linear part == a GCN on ilr (tests/check_compmp.py), so with "sym" the only
           # difference to GCN-ilr is the basis-free nonlinearity
           # "prop" head: inner products then propagation, like GCN's second layer (the "stack" head overfits);
           # hidden / (D-1) compositions, i.e. the same hidden width in ilr coordinates as GCN-ilr

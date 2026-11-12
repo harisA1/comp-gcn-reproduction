@@ -1,4 +1,6 @@
 """Checks for CompMP: basis (in)variance of the nonlinearities and the barycenter aggregation."""
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))  # run from anywhere
 import numpy as np, torch
 from compgcn.ilr import clr, random_basis
 from compgcn.data import synthetic

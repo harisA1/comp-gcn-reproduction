@@ -1,3 +1,5 @@
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))  # run from anywhere
 import numpy as np, torch, time
 from compgcn.ilr import *
 from compgcn.data import *
